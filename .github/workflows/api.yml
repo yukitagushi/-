@@ -1,0 +1,77 @@
+name: api
+
+on:
+  push:
+    paths:
+      - "apps/api/**"
+      - "packages/ui/**"
+      - "package.json"
+      - "docker-compose.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "packages/ui/**"
+      - "package.json"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: silent_voice
+          POSTGRES_USER: silent_voice
+          POSTGRES_PASSWORD: silent_voice
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U silent_voice -d silent_voice" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://silent_voice:silent_voice@localhost:5432/silent_voice
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npm run lint --workspace apps/api
+      - run: npm run build --workspace apps/api
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && secrets.API_ECR_URI != ''
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEPLOY_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEPLOY_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build api container
+        run: |
+          docker build \
+            -f apps/api/Dockerfile \
+            -t ${{ secrets.API_ECR_URI }}:${{ github.sha }} \
+            .
+      - name: Push image
+        run: docker push ${{ secrets.API_ECR_URI }}:${{ github.sha }}
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.API_ECS_CLUSTER }} \
+            --service ${{ secrets.API_ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+      - name: Tag image as latest (optional)
+        if: ${{ always() && secrets.API_ECR_URI != '' }}
+        run: |
+          docker tag ${{ secrets.API_ECR_URI }}:${{ github.sha }} ${{ secrets.API_ECR_URI }}:latest
+          docker push ${{ secrets.API_ECR_URI }}:latest

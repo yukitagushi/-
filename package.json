@@ -1,0 +1,17 @@
+{
+  "name": "silent-voice-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/ui"
+  ],
+  "scripts": {
+    "lint": "npm -ws run lint",
+    "build": "npm -ws run build",
+    "dev": "npm run dev --workspace apps/web",
+    "dev:api": "npm run start:dev --workspace apps/api",
+    "format": "npm -ws run format"
+  }
+}

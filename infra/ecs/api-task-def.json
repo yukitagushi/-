@@ -1,0 +1,44 @@
+{
+  "family": "silent-voice-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::111122223333:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::111122223333:role/silent-voice-api-role",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "111122223333.dkr.ecr.ap-northeast-1.amazonaws.com/silent-voice-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 4000,
+          "protocol": "tcp"
+        }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:111122223333:secret:sv-db-url" },
+        { "name": "OPENAI_API_KEY", "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:111122223333:secret:sv-openai" },
+        { "name": "SESSION_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:111122223333:secret:sv-session" }
+      ],
+      "environment": [
+        { "name": "WEB_ORIGIN", "value": "https://app.silentvoice.example" },
+        { "name": "TENANT_CODE", "value": "default" },
+        { "name": "TENANT_NAME", "value": "Silent Voice Default" },
+        { "name": "OTP_MAIL_MODE", "value": "ses" },
+        { "name": "AWS_REGION", "value": "ap-northeast-1" },
+        { "name": "S3_BUCKET", "value": "silent-voice-attachments" },
+        { "name": "SNS_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:111122223333:silent-voice-alerts" },
+        { "name": "ENABLE_SNS_ALERTS", "value": "true" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/silent-voice-api",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

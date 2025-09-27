@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  compliance
+  viewer
+}
+
+enum ReportStatus {
+  受付
+  調査
+  対応中
+  完了
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  canceled
+}
+
+model Tenant {
+  tenantId  String  @id @default(uuid()) @map("tenant_id")
+  code      String  @unique
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users   User[]
+  reports Report[]
+  auditLogs AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  userId    String   @id @default(uuid()) @map("user_id")
+  tenantId  String   @map("tenant_id")
+  role      UserRole @default(viewer)
+  email     String?  @map("email")
+  emailHash String   @unique @map("email_hash")
+  mfaSecret String?  @map("mfa_secret")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [tenantId])
+  otpChallenges OtpChallenge[]
+  assignedReports Report[] @relation("ReportAssignee")
+  auditLogs AuditLog[] @relation("AuditActor")
+
+  @@index([tenantId])
+  @@unique([tenantId, email], map: "users_tenant_email_unique")
+  @@map("users")
+}
+
+model OtpChallenge {
+  otpId      String   @id @default(uuid()) @map("otp_id")
+  userId     String   @map("user_id")
+  codeHash   String   @map("code_hash")
+  expiresAt  DateTime @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("otp_challenges")
+}
+
+model Report {
+  reportId       String       @id @default(uuid()) @map("report_id")
+  tenantId       String       @map("tenant_id")
+  title          String
+  category       String?
+  bodyEncrypted  String       @map("body_encrypted")
+  status         ReportStatus @default(受付)
+  riskScore      Int          @default(0) @map("risk_score")
+  assigneeUserId String?      @map("assignee_user_id")
+  assigneeName   String?      @map("assignee_display_name")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  tenant   Tenant @relation(fields: [tenantId], references: [tenantId])
+  assignee User?  @relation("ReportAssignee", fields: [assigneeUserId], references: [userId])
+  files    ReportFile[]
+  auditLogs AuditLog[] @relation("ReportAudit")
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status])
+  @@map("reports")
+}
+
+model ReportFile {
+  fileId     String   @id @default(uuid()) @map("file_id")
+  reportId   String   @map("report_id")
+  storageUrl String   @map("storage_url")
+  checksum   String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  report Report @relation(fields: [reportId], references: [reportId], onDelete: Cascade)
+
+  @@index([reportId, createdAt])
+  @@map("report_files")
+}
+
+model AuditLog {
+  logId     String   @id @default(uuid()) @map("log_id")
+  tenantId  String   @map("tenant_id")
+  actorId   String?  @map("actor_id")
+  action    String
+  targetId  String?  @map("target_id")
+  detail    String?
+  reportId  String?  @map("report_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [tenantId])
+  actor  User?  @relation("AuditActor", fields: [actorId], references: [userId])
+  report Report? @relation("ReportAudit", fields: [reportId], references: [reportId])
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+model Invoice {
+  invoiceId    String        @id @default(uuid()) @map("invoice_id")
+  tenantId     String        @map("tenant_id")
+  customerName String        @map("customer_name")
+  periodFrom   DateTime      @map("period_from")
+  periodTo     DateTime      @map("period_to")
+  amountJpy    Int           @map("amount_jpy")
+  memo         String?
+  status       InvoiceStatus @default(draft)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [tenantId])
+
+  @@index([tenantId, status])
+  @@map("invoices")
+}

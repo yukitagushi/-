@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: silent_voice
+      POSTGRES_USER: silent_voice
+      POSTGRES_PASSWORD: silent_voice
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  api:
+    image: node:20-alpine
+    working_dir: /workspace
+    command: sh -c "npm install && npm run prisma:migrate --workspace apps/api && npm run start:dev --workspace apps/api"
+    environment:
+      DATABASE_URL: postgresql://silent_voice:silent_voice@postgres:5432/silent_voice
+      TENANT_CODE: ${TENANT_CODE:-default}
+      TENANT_NAME: ${TENANT_NAME:-Silent Voice Default}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      OTP_MAIL_MODE: ${OTP_MAIL_MODE:-dryrun}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SES_REGION: ${SES_REGION:-}
+      SES_FROM: ${SES_FROM:-}
+      NOTIFY_MAIL_TO: ${NOTIFY_MAIL_TO:-}
+      NOTIFY_MAIL_FROM: ${NOTIFY_MAIL_FROM:-no-reply@silentvoice.local}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN:-}
+      ENABLE_SNS_ALERTS: ${ENABLE_SNS_ALERTS:-false}
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/workspace
+      - api_node_modules:/workspace/node_modules
+    depends_on:
+      - postgres
+
+  web:
+    image: node:20-alpine
+    working_dir: /workspace
+    command: sh -c "npm install && npm run dev --workspace apps/web"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${API_ORIGIN:-http://localhost:4000}
+      NEXT_PUBLIC_TENANT_CODE: ${TENANT_CODE:-default}
+      API_ORIGIN: ${API_ORIGIN:-http://localhost:4000}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - web_node_modules:/workspace/node_modules
+    depends_on:
+      - api
+
+volumes:
+  pg_data:
+  api_node_modules:
+  web_node_modules:

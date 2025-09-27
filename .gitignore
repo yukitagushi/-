@@ -1,13 +1,9 @@
-# env / secrets
 .env
 *.env
 apps/*/.env
 apps/*/.env.local
-# node
 node_modules
-# build artifacts
 .next
 dist
 out
-# misc
 .DS_Store

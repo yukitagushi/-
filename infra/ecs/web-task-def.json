@@ -1,0 +1,34 @@
+{
+  "family": "silent-voice-web",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::111122223333:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::111122223333:role/silent-voice-web-role",
+  "containerDefinitions": [
+    {
+      "name": "web",
+      "image": "111122223333.dkr.ecr.ap-northeast-1.amazonaws.com/silent-voice-web:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NEXT_PUBLIC_API_BASE_URL", "value": "https://api.silentvoice.example" },
+        { "name": "API_ORIGIN", "value": "https://api.silentvoice.example" },
+        { "name": "NEXT_PUBLIC_TENANT_CODE", "value": "default" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/silent-voice-web",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
