@@ -1,0 +1,163 @@
+/* ---- トークン ---- */
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --text:#0f172a; --muted:#677389; --border:#e5e7eb;
+  --accent:#1f3b7b; --accent-2:#274c9a;
+  --radius:12px; --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+}
+html[data-theme="dark"]{
+  --bg:#0b0f14; --bg-soft:#0f172a; --text:#e5e7eb; --muted:#9aa7bd; --border:#1f2937;
+  --accent:#93c5fd; --accent-2:#bcd7ff;
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{
+  margin:0; font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI",sans-serif;
+  background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+a{color:var(--accent)} a:hover{text-decoration:none}
+.muted{color:var(--muted)} .sep{color:#9aa; margin:0 .4em}
+
+/* ---- レイアウト ---- */
+.app{display:flex; min-height:100dvh}
+.sidebar{width:280px; flex:0 0 280px; display:flex; flex-direction:column; background:var(--bg-soft); border-right:1px solid var(--border); position:sticky; top:0; min-height:100dvh}
+.sidebar__header{display:flex; align-items:center; gap:8px; padding:12px}
+.ws{display:flex; align-items:center; gap:10px}
+.ws__icon{font-size:20px}
+.ws__name{font-weight:600}
+
+.nav{padding:8px}
+.nav__section+.nav__section{margin-top:16px}
+.nav__title{color:var(--muted); font-size:12px; padding:6px 8px; text-transform:uppercase; letter-spacing:.04em}
+.nav__item{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; color:inherit; cursor:pointer}
+.nav__item:hover{background:var(--bg)}
+.nav__item.is-active{background:var(--bg); font-weight:600}
+.nav__icon{width:20px; display:inline-flex; justify-content:center}
+
+.sidebar__footer{margin-top:auto; padding:12px; border-top:1px solid var(--border)}
+.textbtn{background:transparent; border:1px solid var(--border); border-radius:8px; padding:8px 10px; cursor:pointer}
+.hint{color:var(--muted); font-size:12px; margin-top:8px}
+
+.main{flex:1; display:flex; flex-direction:column; min-width:0}
+.topbar{height:56px; display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg); position:sticky; top:0; z-index:3}
+.topbar__spacer{flex:1}
+.search{display:flex; align-items:center; gap:8px; border:1px solid var(--border); padding:6px 10px; border-radius:999px; min-width:240px; width:40%; background:var(--bg-soft)}
+.search__icon{color:var(--muted)}
+.search input{background:transparent; border:none; outline:none; width:100%; color:inherit; font:inherit}
+.iconbtn{border:1px solid var(--border); background:var(--bg); border-radius:8px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer}
+.iconbtn:hover{background:var(--bg-soft)}
+.avatar{width:32px; height:32px; display:grid; place-items:center; border-radius:50%; background:var(--bg-soft)}
+
+.content{padding:24px clamp(12px,3vw,32px); max-width:1000px}
+.page{display:none} .page.is-active{display:block}
+.breadcrumbs{font-size:13px; color:var(--muted); margin-bottom:8px}
+.page-title{font-size:30px; line-height:1.25; margin:8px 0 6px}
+.page-meta{color:var(--muted); font-size:12px; margin-bottom:18px}
+
+/* ---- ブロック ---- */
+.callout{display:flex; gap:12px; background:#f1f5f9; padding:12px 14px; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow-sm)}
+.callout__icon{font-size:18px; line-height:1}
+.toggle{border:1px solid var(--border); border-radius:var(--radius); margin:12px 0; background:var(--bg)}
+.toggle>summary{list-style:none; cursor:pointer; padding:12px 14px; font-weight:600; position:relative}
+.toggle>summary::-webkit-details-marker{display:none}
+.toggle>summary::after{content:"▸"; position:absolute; right:12px; top:12px; color:var(--muted); transition:transform .15s ease}
+.toggle[open]>summary::after{transform:rotate(90deg)}
+.toggle__content{padding:6px 14px 14px}
+.numbers{padding-left:20px}
+
+/* ---- フォーム/テーブル/グリッド ---- */
+.form .field{display:flex; flex-direction:column; gap:6px; margin:12px 0}
+.form input,.form select,.form textarea{width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:inherit}
+.actions{display:flex; gap:12px; align-items:center; margin:14px 0}
+.primary{background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer}
+.primary:hover{background:var(--accent-2)}
+.ghost{background:transparent; border:1px solid var(--border); padding:10px 14px; border-radius:10px; cursor:pointer}
+
+.db-grid{margin-top:10px; display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.db-card{border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg); box-shadow:var(--shadow-sm); position:relative; padding:12px}
+.db-card__title{font-weight:600; margin-bottom:6px}
+.db-card__meta{color:var(--muted); font-size:13px}
+.card-actions{display:flex; gap:8px; margin-top:8px}
+.badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); background:var(--bg-soft)}
+
+.chips{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.row{display:flex; align-items:center; gap:12px; margin:8px 0}
+.row__right{margin-left:auto}
+.filters select{padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:var(--bg)}
+
+.checklist{list-style:none; padding-left:0}
+.checklist li{padding:6px 2px}
+.checklist input{accent-color:var(--accent)}
+.kv{display:grid; grid-template-columns:140px 1fr; gap:8px; margin:6px 0}
+.k{color:var(--muted)}
+
+.action-list{margin-top:8px; padding-left:18px}
+.action-list li{margin:4px 0}
+
+/* ---- レスポンシブ ---- */
+.only-mobile{display:none}
+@media (max-width: 900px){
+  .sidebar{position:fixed; inset:0 auto 0 0; transform:translateX(-100%); transition:transform .2s ease; width:78%; max-width:320px; z-index:10}
+  .sidebar.is-open{transform:translateX(0)}
+  .only-mobile{display:inline-flex}
+  .content{max-width:100%}
+}
+
+/* ---- 印刷（ケースフロー） ---- */
+@media print{
+  .sidebar,.topbar,.nav,.actions,.filters,.row__right{display:none!important}
+  .page{display:none!important}
+  #page-flow{display:block!important}
+  body{background:#fff;color:#000}
+}
+/* ===== Dashboard card layout hotfix ===== */
+
+/* 行の折返し制御：横一列ベースで、足りないときだけ下に回る */
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.row__right { margin-left: auto; }
+
+/* 丸いチップ（ステータス/担当）は横一列で折り返さない */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-soft);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;         /* ← 改行禁止（日本語の縦割れ防止） */
+  word-break: keep-all;        /* ← 句読点以外で割らない */
+}
+
+/* カード右側のボタン郡：均一サイズにして縦割れを防ぐ */
+.card-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: nowrap;           /* ← ここは基本1行に固定 */
+}
+.card-actions .ghost,
+.card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  min-width: 88px;             /* ← 「担当/進捗」でも割れない幅 */
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  white-space: nowrap;         /* ← 文字の縦割れ防止 */
+  word-break: keep-all;
+}
+
+/* 小さめ画面ではボタンだけ2段OK（チップは維持） */
+@media (max-width: 560px) {
+  .card-actions { flex-wrap: wrap; }
+  .card-actions .ghost,
+  .card-actions button { min-width: 100px; }
+}
+
+/* 見出しとメタに少し余裕 */
+.db-card__title { margin-bottom: 6px; }
+.db-card__meta { margin-bottom: 6px; }

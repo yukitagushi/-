@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ja" data-theme="auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>サイレントボイス – Notion風UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- サイドバー -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <button class="iconbtn only-mobile" id="sidebarClose" aria-label="サイドバーを閉じる" title="閉じる">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="ws">
+          <div class="ws__icon">🕊️</div>
+          <div class="ws__name">サイレントボイス</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav__section">
+          <div class="nav__title">ページ</div>
+
+          <!-- ここでSPA切替 -->
+          <a class="nav__item is-active js-nav" data-target="home"><span class="nav__icon">🏠</span><span>トップ</span></a>
+          <a class="nav__item js-nav" data-target="report"><span class="nav__icon">📩</span><span>通報フォーム</span></a>
+          <a class="nav__item js-nav" data-target="dashboard"><span class="nav__icon">📊</span><span>ダッシュボード</span></a>
+          <a class="nav__item js-nav" data-target="flow"><span class="nav__icon">🔁</span><span>ケースフロー</span></a>
+          <a class="nav__item js-nav" data-target="audit"><span class="nav__icon">🧾</span><span>監査ログ</span></a>
+          <a class="nav__item js-nav" data-target="auth"><span class="nav__icon">🔐</span><span>ログイン(β)</span></a>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <button class="textbtn" id="newPageBtn">＋ ダミーデータ1件</button>
+        <div class="hint">左のメニューでページ切替。モバイルは左上メニューで開閉。</div>
+        <div class="hint" id="authStateLabel">オフラインモード（未ログイン）</div>
+        <button class="textbtn" id="btnLogout" type="button" style="margin-top:8px; display:none">ログアウト</button>
+      </div>
+    </aside>
+
+    <!-- メイン -->
+    <div class="main">
+      <!-- トップバー -->
+      <header class="topbar">
+        <button class="iconbtn only-mobile" id="sidebarOpen" aria-label="サイドバーを開く" title="メニュー">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+
+        <div class="search">
+          <span class="search__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <input id="searchInput" type="search" placeholder="ダッシュボード内検索…" aria-label="検索" />
+        </div>
+
+        <div class="topbar__spacer"></div>
+
+        <button class="iconbtn" id="themeToggle" aria-label="テーマ切替" title="テーマ切替">
+          <span id="themeIcon" aria-hidden="true">🌙</span>
+        </button>
+        <div class="avatar" title="あなた">👤</div>
+      </header>
+
+      <!-- コンテンツ（各ページをSPAで切替） -->
+      <main class="content" id="contentRoot" tabindex="-1">
+        <!-- トップ -->
+        <section class="page is-active" id="page-home" aria-label="トップ">
+          <nav class="breadcrumbs"><span aria-current="page">トップ</span></nav>
+          <h1 class="page-title">社員の声が、企業の未来を守る</h1>
+          <div class="page-meta">サイレントボイス — 匿名通報プラットフォーム</div>
+
+          <section class="callout" role="note" aria-label="概要">
+            <div class="callout__icon">💡</div>
+            <div class="callout__body">
+              匿名で通報を受け付け、担当が受付→重大度判定→対応策記録→PDF共有。すべての操作は監査ログに残ります。
+            </div>
+          </section>
+
+          <details class="toggle" open>
+            <summary>使い方（クイック）</summary>
+            <div class="toggle__content">
+              <ol class="numbers">
+                <li>左メニュー「通報フォーム」で入力→送信（localStorageに保存）</li>
+                <li>「ダッシュボード」で一覧・検索・担当/ステータス更新</li>
+                <li>「ケースフロー」で1件の流れをPDF出力</li>
+              </ol>
+            </div>
+          </details>
+        </section>
+
+        <!-- 通報フォーム -->
+        <section class="page" id="page-report" aria-label="通報フォーム">
+          <nav class="breadcrumbs"><a class="js-link" data-target="home">トップ</a><span class="sep">/</span><span aria-current="page">通報フォーム</span></nav>
+          <h1 class="page-title">匿名通報フォーム</h1>
+          <form id="reportForm" class="form">
+            <label class="field">
+              <span>件名</span>
+              <input type="text" id="f_title" required placeholder="例：ハラスメントの疑い" />
+            </label>
+            <label class="field">
+              <span>カテゴリ</span>
+              <select id="f_category" required>
+                <option value="" disabled selected>選択してください</option>
+                <option>コンプライアンス違反</option>
+                <option>ハラスメント</option>
+                <option>労働環境</option>
+                <option>その他</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>本文</span>
+              <textarea id="f_body" rows="8" required placeholder="事実関係・日時・関係者・証拠など"></textarea>
+            </label>
+            <div class="actions">
+              <button class="primary" type="submit">送信（保存）</button>
+              <button class="ghost" type="reset">リセット</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- ダッシュボード -->
+        <section class="page" id="page-dashboard" aria-label="ダッシュボード">
+          <nav class="breadcrumbs"><a class="js-link" data-target="home">トップ</a><span class="sep">/</span><span aria-current="page">ダッシュボード</span></nav>
+          <h1 class="page-title">通報ダッシュボード</h1>
+
+          <div class="row">
+            <div class="chips" id="summaryChips"></div>
+            <div class="row__right filters">
+              <select id="filterCat">
+                <option value="all">全カテゴリ</option>
+                <option>コンプライアンス違反</option>
+                <option>ハラスメント</option>
+                <option>労働環境</option>
+                <option>その他</option>
+              </select>
+              <select id="filterStatus">
+                <option value="all">全ステータス</option>
+                <option>未対応</option><option>対応中</option><option>完了</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="db-grid" id="cards"></div>
+          <p class="muted" id="emptyMsg" style="display:none">該当する通報はありません。</p>
+        </section>
+
+        <!-- ケースフロー -->
+        <section class="page" id="page-flow" aria-label="ケースフロー">
+          <nav class="breadcrumbs"><a class="js-link" data-target="home">トップ</a><span class="sep">/</span><span aria-current="page">ケースフロー</span></nav>
+          <h1 class="page-title">ケースフロー（PDF共有）</h1>
+
+          <div class="row">
+            <select id="flowSelect"></select>
+            <div class="row__right">
+              <button class="primary" id="btnPrint">このページをPDFへ</button>
+            </div>
+          </div>
+
+          <div class="flow">
+            <div class="kv"><span class="k">件名</span><span class="v" id="flowTitle">-</span></div>
+            <div class="kv"><span class="k">カテゴリ</span><span class="v" id="flowCat">-</span></div>
+            <div class="kv"><span class="k">ステータス</span><span class="v" id="flowStatus">-</span></div>
+            <div class="kv"><span class="k">担当</span><span class="v" id="flowOwner">-</span></div>
+            <div class="kv"><span class="k">作成</span><span class="v" id="flowDate">-</span></div>
+          </div>
+
+          <h2>重大度チェック</h2>
+          <ul class="checklist" id="sevList">
+            <li><label><input type="checkbox" value="safety"> 人身安全リスク</label></li>
+            <li><label><input type="checkbox" value="legal"> 法令違反の疑い</label></li>
+            <li><label><input type="checkbox" value="reputation"> 風評リスク</label></li>
+          </ul>
+
+          <h2>対応策メモ</h2>
+          <div class="form row gap">
+            <input type="text" id="actOwner" placeholder="担当（任意） 例：総務A" />
+            <input type="text" id="actTitle" placeholder="対応の概要" />
+            <button class="primary" id="addAction">追加</button>
+          </div>
+          <ul class="action-list" id="actionList"></ul>
+        </section>
+
+        <!-- 監査ログ -->
+        <section class="page" id="page-audit" aria-label="監査ログ">
+          <nav class="breadcrumbs"><a class="js-link" data-target="home">トップ</a><span class="sep">/</span><span aria-current="page">監査ログ</span></nav>
+          <h1 class="page-title">監査ログ（CSVエクスポート）</h1>
+
+          <div class="row">
+            <div class="chips" id="auditSummary"></div>
+            <div class="row__right">
+              <button class="primary" id="btnAuditCsv">CSVダウンロード</button>
+              <button class="ghost" id="btnAuditClear">全削除</button>
+            </div>
+          </div>
+
+          <table class="table" style="width:100%; border:1px solid var(--border); border-radius:12px; border-collapse:separate; border-spacing:0; overflow:hidden">
+            <thead>
+              <tr><th style="padding:10px 12px; background:var(--bg-soft); text-align:left">時刻</th>
+                  <th style="padding:10px 12px; background:var(--bg-soft); text-align:left">アクション</th>
+                  <th style="padding:10px 12px; background:var(--bg-soft); text-align:left">対象ID</th>
+                  <th style="padding:10px 12px; background:var(--bg-soft); text-align:left">詳細</th></tr>
+            </thead>
+            <tbody id="auditTbody"></tbody>
+          </table>
+        </section>
+
+        <!-- ログイン(β) -->
+        <section class="page" id="page-auth" aria-label="ログイン">
+          <nav class="breadcrumbs"><a class="js-link" data-target="home">トップ</a><span class="sep">/</span><span aria-current="page">ログイン</span></nav>
+          <h1 class="page-title">ログイン（メール＋OTP・モック）</h1>
+          <form class="form" id="authForm" style="max-width:520px">
+            <label class="field">
+              <span>メールアドレス</span>
+              <input type="email" id="authEmail" placeholder="you@example.com" required />
+            </label>
+            <div class="actions">
+              <button class="primary" type="button" id="btnOtpSend">認証コードを送信</button>
+            </div>
+            <label class="field">
+              <span>認証コード（6桁）</span>
+              <input type="text" id="authOtp" placeholder="000000" pattern="\\d{6}" />
+            </label>
+            <div class="actions">
+              <button class="primary" type="button" id="btnOtpVerify">ログイン</button>
+              <button class="ghost js-link" data-target="home" type="button">キャンセル</button>
+            </div>
+            <p class="muted" id="authStatus">Supabase未設定のときはオフラインモードで表示のみになります。</p>
+          </form>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./assets/js/init-supabase.js"></script>
+  <script defer src="./assets/js/app.js"></script>
+</body>
+</html>
