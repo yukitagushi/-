@@ -1,8 +1,6 @@
 {
   "name": "@silent-voice/ui",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -10,9 +8,7 @@
     "styles"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist",
-    "lint": "eslint src --ext .ts,.tsx",
-    "format": "prettier --check ."
+    "build": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
     "react": "^18.0.0"
