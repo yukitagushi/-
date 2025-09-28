@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "prebuild": "npm --prefix apps/web ci || npm --prefix apps/web install",
     "build": "npm --prefix apps/web run build",
     "dev": "npm --prefix apps/web run dev",
     "lint": "npm --prefix apps/web run lint"
