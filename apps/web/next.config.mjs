@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  transpilePackages: ['@silent-voice/ui']
+  reactStrictMode: true
 };
 
 export default nextConfig;

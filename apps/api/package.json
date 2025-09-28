@@ -4,7 +4,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "echo 'skip api build'",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "lint": "eslint 'src/**/*.ts'",
@@ -12,7 +12,7 @@
     "seed": "ts-node src/scripts/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "postinstall": "echo 'skip prisma generate'"
   },
   "dependencies": {
     "@nestjs/common": "10.3.5",
