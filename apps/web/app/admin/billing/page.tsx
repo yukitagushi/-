@@ -1,24 +1,54 @@
-import { cookies } from "next/headers";
 import BillingBoard from "./BillingBoard";
+import { supabase } from "../../../lib/supabase";
 
-const API_BASE =
-  process.env.API_ORIGIN || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+export const dynamic = "force-dynamic";
 
-async function fetchInvoices() {
+type InvoiceRecord = {
+  invoiceId: string;
+  customerName: string;
+  periodFrom: string;
+  periodTo: string;
+  amountJpy: number;
+  memo?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function normalizeInvoice(row: any): InvoiceRecord | null {
+  const rawId = row?.invoiceId ?? row?.invoice_id ?? row?.id;
+  if (!rawId) {
+    return null;
+  }
+
+  const amount = row?.amountJpy ?? row?.amount_jpy ?? row?.amount ?? 0;
+
+  return {
+    invoiceId: String(rawId),
+    customerName: String(row?.customerName ?? row?.customer_name ?? "不明な顧客"),
+    periodFrom: String(row?.periodFrom ?? row?.period_from ?? ""),
+    periodTo: String(row?.periodTo ?? row?.period_to ?? ""),
+    amountJpy: typeof amount === "number" ? amount : Number(amount) || 0,
+    memo: row?.memo ?? row?.notes ?? null,
+    status: String(row?.status ?? "draft"),
+    createdAt: String(row?.createdAt ?? row?.created_at ?? new Date().toISOString()),
+    updatedAt: String(row?.updatedAt ?? row?.updated_at ?? new Date().toISOString())
+  };
+}
+
+async function fetchInvoices(): Promise<InvoiceRecord[]> {
   try {
-    const cookieStore = cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-    const res = await fetch(`${API_BASE}/billing/invoices`, {
-      cache: "no-store",
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined
-    });
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    return res.json();
+    const { data, error } = await supabase
+      .from("invoices")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    return (data ?? [])
+      .map(normalizeInvoice)
+      .filter((invoice): invoice is InvoiceRecord => Boolean(invoice));
   } catch (err) {
-    console.warn("Failed to load invoices", err);
+    console.warn("Failed to load invoices from Supabase", err);
     return [];
   }
 }

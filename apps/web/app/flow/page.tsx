@@ -1,24 +1,66 @@
-import { cookies } from "next/headers";
 import FlowViewer from "./FlowViewer";
+import { supabase } from "../../lib/supabase";
 
-const API_BASE =
-  process.env.API_ORIGIN || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+export const dynamic = "force-dynamic";
 
-async function fetchReports() {
+type FlowReport = {
+  reportId: string;
+  title: string;
+  category?: string | null;
+  status: string;
+  assigneeName?: string | null;
+  riskScore: number;
+  createdAt: string;
+  updatedAt: string;
+  body?: string;
+};
+
+const STATUS_MAP: Record<string, string> = {
+  received: "受付",
+  investigating: "調査",
+  in_progress: "対応中",
+  resolved: "完了"
+};
+
+function normalizeReport(row: any): FlowReport | null {
+  const rawId = row?.reportId ?? row?.report_id ?? row?.id;
+  if (!rawId) {
+    return null;
+  }
+
+  const createdAt = String(row?.createdAt ?? row?.created_at ?? new Date().toISOString());
+  const updatedAt = String(row?.updatedAt ?? row?.updated_at ?? createdAt);
+  const statusRaw = row?.status ?? row?.status_code ?? "受付";
+  const status = STATUS_MAP[statusRaw as string] ?? String(statusRaw);
+  const risk = row?.riskScore ?? row?.risk_score;
+  const riskScore = typeof risk === "number" ? risk : Number(risk) || 0;
+
+  return {
+    reportId: String(rawId),
+    title: String(row?.title ?? "(無題)"),
+    category: row?.category ?? row?.category_name ?? null,
+    status,
+    assigneeName: row?.assigneeName ?? row?.assignee_name ?? null,
+    riskScore,
+    createdAt,
+    updatedAt,
+    body: row?.body ?? row?.body_plain ?? undefined
+  };
+}
+
+async function fetchReports(): Promise<FlowReport[]> {
   try {
-    const cookieStore = cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-    const res = await fetch(`${API_BASE}/reports`, {
-      cache: "no-store",
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined
-    });
-    if (!res.ok) throw new Error("Failed to load reports");
-    return res.json();
+    const { data, error } = await supabase
+      .from("reports")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    return (data ?? [])
+      .map(normalizeReport)
+      .filter((report): report is FlowReport => Boolean(report));
   } catch (err) {
-    console.warn("Failed to load reports", err);
+    console.warn("Failed to load reports from Supabase", err);
     return [];
   }
 }

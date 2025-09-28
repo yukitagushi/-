@@ -11,6 +11,7 @@
     "format": "prettier --check ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.42.3",
     "@silent-voice/ui": "file:../../packages/ui",
     "next": "14.2.4",
     "react": "18.2.0",

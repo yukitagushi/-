@@ -1,24 +1,44 @@
-import { cookies } from "next/headers";
 import AuditLogTable from "./AuditLogTable";
+import { supabase } from "../../lib/supabase";
 
-const API_BASE =
-  process.env.API_ORIGIN || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+export const dynamic = "force-dynamic";
 
-async function fetchAudit() {
+type AuditRecord = {
+  logId: string;
+  action: string;
+  actorId?: string | null;
+  targetId?: string | null;
+  detail?: string | null;
+  createdAt: string;
+};
+
+function normalizeAudit(row: any): AuditRecord | null {
+  const rawId = row?.logId ?? row?.log_id ?? row?.id;
+  if (!rawId) {
+    return null;
+  }
+
+  return {
+    logId: String(rawId),
+    action: String(row?.action ?? row?.event ?? "UNKNOWN"),
+    actorId: row?.actorId ?? row?.actor_id ?? null,
+    targetId: row?.targetId ?? row?.target_id ?? row?.reportId ?? row?.report_id ?? null,
+    detail: row?.detail ?? row?.details ?? null,
+    createdAt: String(row?.createdAt ?? row?.created_at ?? new Date().toISOString())
+  };
+}
+
+async function fetchAudit(): Promise<AuditRecord[]> {
   try {
-    const cookieStore = cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-    const res = await fetch(`${API_BASE}/audit`, {
-      cache: "no-store",
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined
-    });
-    if (!res.ok) throw new Error("Failed");
-    return res.json();
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    return (data ?? []).map(normalizeAudit).filter((log): log is AuditRecord => Boolean(log));
   } catch (err) {
-    console.warn("Failed to load audit logs", err);
+    console.warn("Failed to load audit logs from Supabase", err);
     return [];
   }
 }

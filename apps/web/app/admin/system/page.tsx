@@ -1,7 +1,4 @@
-import { cookies } from "next/headers";
-
-const API_BASE =
-  process.env.API_ORIGIN || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+export const dynamic = "force-dynamic";
 
 const ENV_KEYS = [
   "DATABASE_URL",
@@ -14,20 +11,12 @@ const ENV_KEYS = [
 
 async function fetchHealth() {
   try {
-    const cookieStore = cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-    const res = await fetch(`${API_BASE}/health`, {
-      cache: "no-store",
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined
-    });
+    const res = await fetch("/api/health", { cache: "no-store" });
     if (!res.ok) throw new Error("health check failed");
     return await res.json();
   } catch (err) {
     console.warn("health fetch failed", err);
-    return null;
+    return { ok: false };
   }
 }
 
@@ -39,6 +28,7 @@ function mask(value: string | undefined) {
 
 export default async function SystemPage() {
   const health = await fetchHealth();
+  const isHealthy = Boolean(health && health.ok !== false);
   const envSummary = ENV_KEYS.map((key) => ({ key, value: mask(process.env[key]) }));
 
   return (
@@ -54,8 +44,10 @@ export default async function SystemPage() {
       <section className="callout" style={{ marginBottom: 24 }}>
         <div className="callout__icon">💡</div>
         <div>
-          <div>APIヘルスチェック: {health ? "200 OK" : "NG"}</div>
-          {health && <div className="muted">timestamp: {health.timestamp}</div>}
+          <div>APIヘルスチェック: {isHealthy ? "200 OK" : "NG"}</div>
+          {isHealthy && health?.timestamp && (
+            <div className="muted">timestamp: {health.timestamp}</div>
+          )}
         </div>
       </section>
 
